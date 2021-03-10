@@ -29,7 +29,7 @@ class MersenneTwister:
             self.c = 0xfff7eee000000000
             self.l = 43
             self.f = 6364136223846793005
-        elif variant == "mt11213b": # implements mt11213b twister from boost
+        elif variant == "mt11213b": # mt11213b twister version from boost
             self.w = 32
             self.n = 351
             self.m = 175
@@ -62,7 +62,6 @@ class MersenneTwister:
             raise NotImplementedError
         self.lower_mask = (1 << self.r) - 1
         self.upper_mask = 1 << self.r
-        self.state = [0] * self.n
         self.seed(mt_seed)
 
     def random_integer(self):
@@ -89,15 +88,16 @@ class MersenneTwister:
         self.index = 0
 
     def seed(self, seed):
+        self.state = [0] * self.n
         self.state[0] = seed
         self.index = self.n
         for i in range(1, self.n):
             self.state[i] = self.fixed_int(self.f * (self.state[i - 1] ^ (self.state[i - 1] >> (self.w - 2))) + i)
 
-    def get_state(self): # [state, index] format
+    def getstate(self): # [state, index] format
         return [self.state, self.index]
 
-    def set_state(self, new_state): # [state, index] format
+    def setstate(self, new_state): # [state, index] format
         assert len(new_state[0]) == self.n
         assert all(isinstance(i, int) for i in new_state[0])
         self.state = new_state[0]
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     print(f"Example 64-bit: {random_64.random_integer()}")
     random_alt = MersenneTwister(variant = "mt11213b") # alternate twister
     print(f"Example Alt 32-bit: {random_alt.random_integer()}")
-    saved_state = random_32.get_state()
+    saved_state = random_32.getstate()
     print(f"Original State: {random_32.random_integer()}") # advances the state
-    random_32.set_state(saved_state) # restores the state
-    print(f"Restored State: {random_32.random_integer()}") # verifies the output
+    random_32.setstate(saved_state) # restores the state
+    print(f"Restored State: {random_32.random_integer()}") # verifies the restored state
     print(f"Example Float: {random_32.random()}")
