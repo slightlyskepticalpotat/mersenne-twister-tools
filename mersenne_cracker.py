@@ -2,7 +2,7 @@ from mersenne_twister import MersenneTwister
 
 class MersenneCracker:
     def __init__(self, variant = "mt19937", parameters = []):
-        if variant == "mt19937": # 32-bit version of original twister
+        if variant == "mt19937":  # 32-bit version of original twister
             self.w = 32
             self.n = 624
             self.m = 397
@@ -16,7 +16,7 @@ class MersenneCracker:
             self.c = 0xefc60000
             self.l = 18
             self.f = 1812433253
-        elif variant == "mt19937_64": # 64-bit version of original twister
+        elif variant == "mt19937_64":  # 64-bit version of original twister
             self.w = 64
             self.n = 312
             self.m = 156
@@ -30,7 +30,7 @@ class MersenneCracker:
             self.c = 0xfff7eee000000000
             self.l = 43
             self.f = 6364136223846793005
-        elif variant == "mt11213b": # mt11213b twister version from boost
+        elif variant == "mt11213b":  # mt11213b twister version from boost
             self.w = 32
             self.n = 351
             self.m = 175
@@ -44,7 +44,7 @@ class MersenneCracker:
             self.c = 0xffe50000
             self.l = 17
             self.f = 1812433253
-        elif variant == "custom": # only use if you know what you're doing
+        elif variant == "custom":  # only use if you know what you're doing
             assert len(parameters) == 13
             self.w = parameters[0]
             self.n = parameters[1]
@@ -67,7 +67,7 @@ class MersenneCracker:
         assert len(outputs) >= self.n
         assert all(isinstance(i, int) for i in outputs)
         outputs = outputs[:self.n]
-        for i in range(self.n): # reverses the temper operations
+        for i in range(self.n):  # reverses the temper operations
             y = outputs[i]
             y = self.untemper_right(y, self.l)
             y = self.untemper_left(y, self.t, self.c)
@@ -102,12 +102,16 @@ class MersenneCracker:
             i += 1
         return n
 
+    def past_numbers(self, state):  # returns the past n numbers generated
+        pass
+
 if __name__ == "__main__":
+    # this can also be used to crack floats if you scale and round them first
     random_32 = MersenneTwister()
     outputs_32 = [random_32.random_integer() for _ in range(624)]
     cracker_32 = MersenneCracker()
     state_32 = cracker_32.crack_state(outputs_32)
-    random_32.setstate([state_32, 0]) # start at beginning of state
+    random_32.setstate([state_32, 0])  # start at beginning of state
     cracked_32 = [random_32.random_integer() for _ in range(624)]
     assert outputs_32 == cracked_32
     print("32-bit Successfully Tested")
@@ -116,7 +120,7 @@ if __name__ == "__main__":
     outputs_64 = [random_64.random_integer() for _ in range(312)]
     cracker_64 = MersenneCracker(variant = "mt19937_64")
     state_64 = cracker_64.crack_state(outputs_64)
-    random_64.setstate([state_64, 0]) # start at beginning of state
+    random_64.setstate([state_64, 0])  # start at beginning of state
     cracked_64 = [random_64.random_integer() for _ in range(312)]
     assert outputs_64 == cracked_64
     print("64-bit Successfully Tested")
@@ -125,8 +129,7 @@ if __name__ == "__main__":
     outputs_32_alt = [random_32_alt.random_integer() for _ in range(624)]
     cracker_32_alt = MersenneCracker(variant = "mt11213b")
     state_32_alt = cracker_32_alt.crack_state(outputs_32_alt)
-    random_32_alt.setstate([state_32_alt, 0]) # start at beginning of state
+    random_32_alt.setstate([state_32_alt, 0])  # start at beginning of state
     cracked_32_alt = [random_32_alt.random_integer() for _ in range(624)]
     assert outputs_32 == cracked_32
     print("32-bit Alt Successfully Tested")
-    # can also be used to crack floats if you scale them up first
