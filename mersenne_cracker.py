@@ -61,6 +61,8 @@ class MersenneCracker:
             self.f = parameters[12]
         else:
             raise NotImplementedError
+        self.lower_mask = (1 << self.r) - 1
+        self.upper_mask = 1 << self.r
 
     def crack_state(self, outputs):
         self.original_state = [0] * self.n
@@ -102,34 +104,45 @@ class MersenneCracker:
             i += 1
         return n
 
-    def past_numbers(self, state):  # returns the past n numbers generated
-        pass
+    def untwist(self, state):  # returns the past state before a twist
+        state = list(state)
+        for i in range(self.n - 1, -1, -1):
+            temp = state[i] ^ state[(i + self.m) % self.n]  # find leading bit
+            if temp % 2:
+                temp ^= self.a
+            shifted = (temp << 1) & self.upper_mask
+            temp = state[(i - 1) % self.n] ^ state[(i + self.m - 1) % self.n]  # ending bits of int
+            if temp & self.upper_mask == self.upper_mask:  # check if leading bit is the same
+                temp ^= self.a
+                shifted |= 1
+            state[i] = shifted ^ (temp << 1) & self.lower_mask
+        return state
 
 if __name__ == "__main__":
     # this can also be used to crack floats if you scale and round them first
     random_32 = MersenneTwister()
+    old_state_32 = random_32.getstate()
     outputs_32 = [random_32.random_integer() for _ in range(624)]
     cracker_32 = MersenneCracker()
-    state_32 = cracker_32.crack_state(outputs_32)
-    random_32.setstate([state_32, 0])  # start at beginning of state
-    cracked_32 = [random_32.random_integer() for _ in range(624)]
-    assert outputs_32 == cracked_32
-    print("32-bit Successfully Tested")
-
-    random_64 = MersenneTwister(variant = "mt19937_64")
-    outputs_64 = [random_64.random_integer() for _ in range(312)]
-    cracker_64 = MersenneCracker(variant = "mt19937_64")
-    state_64 = cracker_64.crack_state(outputs_64)
-    random_64.setstate([state_64, 0])  # start at beginning of state
-    cracked_64 = [random_64.random_integer() for _ in range(312)]
-    assert outputs_64 == cracked_64
-    print("64-bit Successfully Tested")
+    new_state_32 = cracker_32.crack_state(outputs_32)
+    random_32.setstate([new_state_32, 0])  # start at beginning of state
+    assert outputs_32 == [random_32.random_integer() for _ in range(624)]
+    print("32-bit Successfully Cracked")
+    assert cracker_32.untwist(new_state_32)[1:] == old_state_32[0][1:]  # seed may be different
+    print("32-bit Successfully Reversed")
 
     random_32_alt = MersenneTwister(variant = "mt11213b")
     outputs_32_alt = [random_32_alt.random_integer() for _ in range(624)]
     cracker_32_alt = MersenneCracker(variant = "mt11213b")
-    state_32_alt = cracker_32_alt.crack_state(outputs_32_alt)
-    random_32_alt.setstate([state_32_alt, 0])  # start at beginning of state
-    cracked_32_alt = [random_32_alt.random_integer() for _ in range(624)]
-    assert outputs_32 == cracked_32
-    print("32-bit Alt Successfully Tested")
+    new_state_32_alt = cracker_32_alt.crack_state(outputs_32_alt)
+    random_32_alt.setstate([new_state_32_alt, 0])  # start at beginning of state
+    assert outputs_32_alt == [random_32_alt.random_integer() for _ in range(624)]
+    print("32-bit Alt Successfully Cracked")
+
+    random_64 = MersenneTwister(variant = "mt19937_64")
+    outputs_64 = [random_64.random_integer() for _ in range(312)]
+    cracker_64 = MersenneCracker(variant = "mt19937_64")
+    new_state_64 = cracker_64.crack_state(outputs_64)
+    random_64.setstate([new_state_64, 0])  # start at beginning of state
+    assert outputs_64 == [random_64.random_integer() for _ in range(312)]
+    print("64-bit Successfully Cracked")

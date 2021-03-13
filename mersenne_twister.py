@@ -80,7 +80,7 @@ class MersenneTwister:
 
     def twist(self):
         for i in range(self.n):
-            temp = self.fixed_int((self.state[i] & self.upper_mask) + (self.state[(i + 1) % self.n] & self.lower_mask))
+            temp = (self.state[i] & self.upper_mask) + (self.state[(i + 1) % self.n] & self.lower_mask)
             shifted = temp >> 1
             if temp % 2:
                 shifted ^= self.a
@@ -95,7 +95,7 @@ class MersenneTwister:
             self.state[i] = self.fixed_int(self.f * (self.state[i - 1] ^ (self.state[i - 1] >> (self.w - 2))) + i)
 
     def getstate(self):  # [state, index] format
-        return [self.state, self.index]
+        return [list(self.state), self.index]
 
     def setstate(self, new_state):  # [state, index] format
         assert len(new_state[0]) == self.n
