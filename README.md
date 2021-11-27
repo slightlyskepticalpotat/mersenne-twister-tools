@@ -1,5 +1,5 @@
 # mersenne-twister-tools
-A collection of various programs implementing and/or related to the Mersenne Twister PRNG. This is intended to be a bare-minimum Python 3 (minimum version 3.6, as format strings are used) implementation that users can build off of.
+A collection of various programs implementing and/or related to the Mersenne Twister PRNG. This is intended to be a bare-minimum Python 3 (minimum version 3.6, as format strings are used) implementation that users can build off of. This also includes a C++ version of Boost's mt11213b Mersenne Twister, so my code for the nonstandard mt11213b variant can be verified.
 
 ## Features
 - Seeding with any hashable type*
@@ -23,10 +23,12 @@ A collection of various programs implementing and/or related to the Mersenne Twi
 \*Set the environment variable `PYTHONHASHSEED = 0` to fix hashes for non-ints.
 
 ## Testing
-`mersenne_twister.py` and `mersenne_cracker.py` both run tests when you run them from the command line.
+`mersenne_twister.py` and `mersenne_cracker.py` both run tests when you run them from the command line. You have to compile `mt11213b.cpp` and enter a number `n` to see the first `n` integers from the mt11213b generator (with the default seed 5489).
 ```bash
 $ python3 mersenne_cracker.py
 $ python3 mersenne_twister.py
+$ g++ mt11213b.cpp
+$ ./a.out
 ```
 
 ## Contributing
